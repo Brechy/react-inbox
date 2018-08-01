@@ -1,12 +1,28 @@
 import React from 'react'
 
 const Toolbar = (props) => {
+
+  const unreadMessageCount = messages.filter(message => !message.read).length
+  const selectedMessageCount = messages.filter(message => message.selected).length
+  let selectAll
+
+  switch(selectedMessageCount) {
+    case 0:
+    selectAll = 'fa-square-o'
+    break;
+    case messages.length:
+    selectAll = 'fa-check-square-o'
+    break;
+    default:
+    selectAll = 'fa-minus-square-o'
+  }
+
   return (
     <div className="row toolbar">
       <div className="col-md-12">
         <p className="pull-right">
-          <span className="badge badge">2</span>
-          unread messages
+          <span className="badge badge">{unreadMessageCount}</span>
+          unread {unreadMessageCount === 1 ? 'message' : 'messages'}
         </p>
 
         <a className="btn btn-danger" onClick={props.toggleCompose}>

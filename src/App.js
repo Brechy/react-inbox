@@ -44,11 +44,27 @@ class App extends Component {
 		})
 	}
 
+	async markAsRead() {
+		await this.updateMessages({
+			"messageIds": this.state.message.filter(message => message.selected).map(message => message.id),
+			"command": "read",
+			"read": true
+		})
+		this.setState({
+			messages: this.state.messages.map(message => (
+				message.selected ? {...message, read: true} : message
+			))
+		})
+	}
+
 	render() {
 		return (
 			<div className="App">
 				<Toolbar
-				toggleCompose={this.toggleCompose}/>
+				toggleCompose={this.toggleCompose}
+				markAsRead={this.markAsRead}
+				markAsUnread={this.markAsUnread}
+				/>
 
 				<ComposeForm
 					composing={this.state.composing} sendMessage={this.sendMessage}
