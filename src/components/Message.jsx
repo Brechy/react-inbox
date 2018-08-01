@@ -1,16 +1,17 @@
 import React from 'react'
 
 const Message = (props) => {
-  console.log(props) //console log your props so you can see what path you need to take
+
   return (
-<div className="row message read">
+<div className={`row message ${props.message.read ? 'read' : 'unread'}`}>
   <div className="col-xs-1">
     <div className="row">
       <div className="col-xs-2">
         <input type="checkbox" />
       </div>
       <div className="col-xs-2">
-        <i className={`star fa fa-star${props.message.starred ? '' : '-o'}`}></i>
+        <i
+        className={`star fa fa-star${props.message.starred ? '' : '-o'}`} onClick={(() => {props.starToggler(props.message.id)})}></i>
       </div>
     </div>
   </div>

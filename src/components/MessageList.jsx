@@ -2,10 +2,9 @@ import React from 'react'
 import Message from './Message'
 
 const MessageList = (props) => {
-  console.log(props.messages)
-  return props.messages.map(message => <Message message={message} />
+  return props.messages.map(message => <Message message={message} starToggler={props.starToggler} />
 
-  ) 
+  )
 }
 
 export default MessageList

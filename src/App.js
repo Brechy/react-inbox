@@ -1,78 +1,65 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import './App.css';
-import Toolbar from './components/Toolbar'
-import MessageList from './components/MessageList'
+import Toolbar from './components/Toolbar';
+import MessageList from './components/MessageList';
+import ComposeForm from './components/ComposeForm'
 
 class App extends Component {
-  state = {
-    messages: [
-  {
-    "id": 1,
-    "subject": "You can't input the protocol without calculating the mobile RSS protocol!",
-    "read": false,
-    "starred": true,
-    "labels": ["dev", "personal"]
-  },
-  {
-    "id": 2,
-    "subject": "connecting the system won't do anything, we need to input the mobile AI panel!",
-    "read": false,
-    "starred": false,
-    "selected": true,
-    "labels": []
-  },
-  {
-    "id": 3,
-    "subject": "Use the 1080p HTTP feed, then you can parse the cross-platform hard drive!",
-    "read": false,
-    "starred": true,
-    "labels": ["dev"]
-  },
-  {
-    "id": 4,
-    "subject": "We need to program the primary TCP hard drive!",
-    "read": true,
-    "starred": false,
-    "selected": true,
-    "labels": []
-  },
-  {
-    "id": 5,
-    "subject": "If we override the interface, we can get to the HTTP feed through the virtual EXE interface!",
-    "read": false,
-    "starred": false,
-    "labels": ["personal"]
-  },
-  {
-    "id": 6,
-    "subject": "We need to back up the wireless GB driver!",
-    "read": true,
-    "starred": true,
-    "labels": []
-  },
-  {
-    "id": 7,
-    "subject": "We need to index the mobile PCI bus!",
-    "read": true,
-    "starred": false,
-    "labels": ["dev", "personal"]
-  },
-  {
-    "id": 8,
-    "subject": "If we connect the sensor, we can get to the HDD port through the redundant IB firewall!",
-    "read": true,
-    "starred": true,
-    "labels": []
-  }
-]}
-  render() {
-    return (
-      <div className="App">
-        <Toolbar />
-        <MessageList  messages={this.state.messages}/>
-      </div>
-    );
-  }
-}
+	state = {
+			messages: []
+		}
+		async componentDidMount() {
+			const response = await fetch('http://localhost:8082/api/messages')
+			const json = await response.json()
+			this.setState({messages: json})
+		}
 
+		toggleCompose = () => {
+			this.setState({composing: !this.state.composing})
+		}
+
+	toggleStarred = (msgid) => {
+        let newMessages = [];
+        for (let i = 0; i < this.state.messages.length; i++) {
+            let msg = this.state.messages[i]
+            if (msg.id === msgid) {
+                msg.starred = !msg.starred;
+            }
+            newMessages.push(msg);
+        }
+        this.setState({messages: newMessages});
+	}
+
+	async submitMessage(message) {
+		const response = await this.request('/api/messages', 'POST', {
+			subject: message.subject,
+			body: message.body,
+		})
+		const newMessage = await response.json()
+
+		const messages = [...this.state.messages, newMessage]
+		this.setState({
+			messages,
+			composing: false,
+		})
+	}
+
+	render() {
+		return (
+			<div className="App">
+				<Toolbar
+				toggleCompose={this.toggleCompose}/>
+
+				<ComposeForm
+					composing={this.state.composing} sendMessage={this.sendMessage}
+				/>
+
+				<MessageList
+					starToggler={this.toggleStarred}
+					messages={this.state.messages}
+				/>
+			</div>
+			);
+		}
+	}
 export default App;
