@@ -4,8 +4,7 @@ const Toolbar = (props) => {
 
   const unreadMessageCount = props.messages.filter(message => !message.read).length
   const selectedMessageCount = props.messages.filter(message => message.selected).length
-  let selectAll
-
+  let selectAll;
   switch(selectedMessageCount) {
     case 0:
     selectAll = 'fa-square-o'
