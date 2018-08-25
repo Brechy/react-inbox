@@ -61,9 +61,10 @@ class App extends Component {
 		return (
 			<div className="App">
 				<Toolbar
-				toggleCompose={this.toggleCompose}
-				markAsRead={this.markAsRead}
-				markAsUnread={this.markAsUnread}
+					toggleCompose={this.toggleCompose}
+					markAsRead={this.markAsRead}
+					markAsUnread={this.markAsUnread}
+					messages={this.state.messages}
 				/>
 
 				<ComposeForm
