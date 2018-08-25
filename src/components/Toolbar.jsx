@@ -2,15 +2,15 @@ import React from 'react'
 
 const Toolbar = (props) => {
 
-  const unreadMessageCount = messages.filter(message => !message.read).length
-  const selectedMessageCount = messages.filter(message => message.selected).length
+  const unreadMessageCount = props.messages.filter(message => !message.read).length
+  const selectedMessageCount = props.messages.filter(message => message.selected).length
   let selectAll
 
   switch(selectedMessageCount) {
     case 0:
     selectAll = 'fa-square-o'
     break;
-    case messages.length:
+    case props.messages.length:
     selectAll = 'fa-check-square-o'
     break;
     default:
@@ -60,4 +60,4 @@ const Toolbar = (props) => {
 }
 
 
-export default Toolbar
+export default Toolbar;
