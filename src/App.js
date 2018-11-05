@@ -8,6 +8,7 @@ class App extends Component {
 	state = {
 			messages: []
 		}
+		
 		async componentDidMount() {
 			const response = await fetch('http://localhost:8082/api/messages')
 			const json = await response.json()
@@ -57,6 +58,65 @@ class App extends Component {
 		})
 	}
 
+	//individual message select icon
+	toggleMessageState(message, property) {
+		const index = this.state.messages.indexOf(message)
+		this.setState({
+			messages: [
+				...this.state.messages.slice(0, index),
+				{...message, [property]: !message[property]},
+				...this.state.messages.slice(index + 1)
+			]
+		})
+	}
+
+	toggleMessageSelected = (message) => {
+		this.toggleMessageState(message, 'selected')
+	}
+
+	//function to toggle select all icon in the toolbar
+	toggleSelectAllIcon = () => {
+		//setting the initial state of the icon to always be unchecked or not toggled
+		let messagesSelected = this.state.messages.filter((message) => {
+			return message.selected
+		}).length
+
+		let toggled = ''
+
+		if(messagesSelected === this.state.messages.length) {
+			//if toggled change icon to checked icon
+			toggled = '-check'
+		} else if(messagesSelected === 0) {
+			toggled = ''
+		} else {
+			toggled = '-minus'
+		}
+		return toggled
+	}
+
+	//function to change state of messages in inbox to 'selected' or 'checked' if select all button is clicked
+	selectAll = () => {
+		let messagesSelected = this.state.messages.filter((message) => {
+			return message.selected 
+		}).length
+
+	    if(messagesSelected === this.state.messages.length) {
+			this.setState({
+				message: this.state.messages.map((message) => {
+					message.selected = false
+					return message 
+				})
+			})
+		} else {
+			this.setState({
+				message: this.state.messages.map((message) => {
+					message.selected = true
+					return message
+				})
+			})
+		}
+	}
+
 	render() {
 		return (
 			<div className="App">
@@ -64,6 +124,8 @@ class App extends Component {
 					toggleCompose={this.toggleCompose}
 					markAsRead={this.markAsRead}
 					markAsUnread={this.markAsUnread}
+					toggleSelectAllIcon={this.toggleSelectAllIcon}
+					selectAll={this.selectAll}
 					messages={this.state.messages}
 				/>
 
