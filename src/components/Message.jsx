@@ -4,8 +4,7 @@ import React from 'react';
 const Message = (props) => {
 
 	const toggleSelect = (event) => {
-		event.preventDefault();
-		props.toggleMessagSelected(props.message);
+		props.toggleMessageSelected(props.message);
 	};
 	
 	const labels = props.message.labels.map((label, i) => (
@@ -13,13 +12,14 @@ const Message = (props) => {
 	));
 
 	return (
-		<div className={`row message ${props.message.read ? 'read' : 'unread'}`}>
+		<div className={`row message ${props.message.read ? 'read' : 'unread'} ${props.message.selected ? 'selected' : ''}`}>
 			<div className="col-xs-1">
 				<div className="row">
 					<div className="col-xs-2">
 						<input 
 							type="checkbox"
-							checked={props.message.toggleSelect}
+							checked={!! props.message.selected}
+							readOnly={true}
 							onClick={toggleSelect}
 						/>
 					</div>

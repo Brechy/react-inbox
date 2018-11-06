@@ -19,7 +19,7 @@ class App extends Component {
 		this.setState({composing: !this.state.composing})
 	}
 
-	//if message is starred, change state of star from empty to filled in
+	//if message is starred, change state of star from empty to
 	toggleStarred = (msgid) => {
         let newMessages = [];
         for (let i = 0; i < this.state.messages.length; i++) {
@@ -140,6 +140,7 @@ class App extends Component {
 				<MessageList
 					starToggler={this.toggleStarred}
 					messages={this.state.messages}
+					toggleMessageSelected={this.toggleMessageSelected}
 				/>
 			</div>
 			);
