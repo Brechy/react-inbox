@@ -8,17 +8,18 @@ class App extends Component {
 	state = {
 			messages: []
 		}
-		
-		async componentDidMount() {
-			const response = await fetch('http://localhost:8082/api/messages')
-			const json = await response.json()
-			this.setState({messages: json})
-		}
 
-		toggleCompose = () => {
-			this.setState({composing: !this.state.composing})
-		}
+	async componentDidMount() {
+		const response = await fetch('http://localhost:8082/api/messages')
+		const json = await response.json()
+		this.setState({messages: json})
+	}
 
+	toggleCompose = () => {
+		this.setState({composing: !this.state.composing})
+	}
+
+	//if message is starred, change state of star from empty to filled in
 	toggleStarred = (msgid) => {
         let newMessages = [];
         for (let i = 0; i < this.state.messages.length; i++) {
@@ -31,6 +32,9 @@ class App extends Component {
         this.setState({messages: newMessages});
 	}
 
+	//get message from collective API when message selected, drop down in inbox to show message
+
+    //post new message to collective API
 	async submitMessage(message) {
 		const response = await this.request('/api/messages', 'POST', {
 			subject: message.subject,
@@ -44,7 +48,7 @@ class App extends Component {
 			composing: false,
 		})
 	}
-
+    //change state of message when marked as 'read' 
 	async markAsRead() {
 		await this.updateMessages({
 			"messageIds": this.state.message.filter(message => message.selected).map(message => message.id),
