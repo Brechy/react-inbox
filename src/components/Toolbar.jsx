@@ -1,34 +1,38 @@
 /* eslint-disable no-unused-vars */
 import React from 'react';
 
-const Toolbar = (props) => {
-
-	let unreadMessageCount = props.messages.filter(message => !message.read).length;
-	let selectedMessageCount = props.messages.filter(message => message.selected).length;
+const Toolbar = props => {
+	let unreadMessageCount = props.messages.filter(message => !message.read)
+		.length;
+	let selectedMessageCount = props.messages.filter(message => message.selected)
+		.length;
 
 	return (
 		<div className="row toolbar">
 			<div className="col-md-12">
 				<p className="pull-right">
 					<span className="badge badge">{unreadMessageCount}</span>
-          unread {unreadMessageCount === 1 ? 'message' : 'messages'}
+					unread {unreadMessageCount === 1 ? 'message' : 'messages'}
 				</p>
 
 				<a className="btn btn-danger" onClick={props.toggleCompose}>
-					<i className={'fa fa-plus'}></i>
+					<i className={'fa fa-plus'} />
 				</a>
 
 				<button className="btn btn-default">
-					<i 
+					<i
 						className={`fa fa${props.toggleSelectAllIcon()}-square-o`}
 						onClick={() => props.selectAll()}
-            
-					></i>
+					/>
 				</button>
 
-				<button className="btn btn-default">Mark As Read</button>
+				<button className="btn btn-default" onClick={props.markAsRead}>
+					Mark As Read
+				</button>
 
-				<button className="btn btn-default">Mark As Unread</button>
+				<button className="btn btn-default" onClick={props.markAsUnread}>
+					Mark As Unread
+				</button>
 
 				<select className="form-control label-select">
 					<option>Apply label</option>
@@ -45,12 +49,11 @@ const Toolbar = (props) => {
 				</select>
 
 				<button className="btn btn-default">
-					<i className="fa fa-trash-o"></i>
+					<i className="fa fa-trash-o" />
 				</button>
 			</div>
 		</div>
 	);
 };
-
 
 export default Toolbar;
