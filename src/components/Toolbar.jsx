@@ -49,7 +49,7 @@ const Toolbar = props => {
 					<option value="gschool">gschool</option>
 				</select>
 
-				<button className="btn btn-default">
+				<button className="btn btn-default" onClick={props.deleteMessages}>
 					<i className="fa fa-trash-o" />
 				</button>
 			</div>

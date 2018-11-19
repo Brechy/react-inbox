@@ -21,6 +21,7 @@ const sanitizeMessages = (messages) => {
 		read: !!read,
 		starred: !!starred,
 		selected: false,
+		expanded: false,
 		subject: `${subject}`
 	}))
 }
@@ -50,27 +51,30 @@ class App extends Component {
 		const messagesJson = await fetch('http://localhost:8082/api/messages');
 		let messages = await messagesJson.json();
 		console.log('coming from API === ', messages);
-		this.snapshotSelectedSetState({ messages });
+		this.snapshotTransientSetState({ messages });
 	};
 
-	snapshotSelectedSetState = (state) => {
-		const snapshot = this.snapshotSelected();
+	snapshotTransientSetState = (state) => {
+		const snapshot = this.snapshotTransient();
 		console.log("previously selected", snapshot);
 		this.setState(state);
-		this.restoreSelected(snapshot);
+		this.restoreTransient(snapshot);
 	}
-	snapshotSelected = () => this.state.messages.filter(({selected}) => selected).map(({id}) => id)
-	restoreSelected = (snapshot) => {
+	snapshotTransient = () => ({
+		selected: this.state.messages.filter(({selected}) => selected).map(({id}) => id),
+		expanded: this.state.messages.filter(({expanded}) => expanded).map(({id}) => id),
+	})
+	restoreTransient = (snapshot) => {
 		this.setState({
-			messages: this.state.messages.map(m => Object.assign(m, {selected: inThatEveryoneWants(m.id, snapshot)}))
+			messages: this.state.messages.map(m => Object.assign(m, {
+				selected: inThatEveryoneWants(m.id, snapshot.selected),
+				expanded: inThatEveryoneWants(m.id, snapshot.expanded),
+			}))
 		})
 	}
 
 	//post new message to collective API
-	submitMessage = async () => {
-		const subject = document.querySelector('#subject').value;
-		const body = document.querySelector('#body').value;
-		//TODO: need to add error checking to use this response
+	sendMessage = async ({subject, body}) => {
 		const response = await fetch('http://localhost:8082/api/messages', {
 			method: 'POST',
 			headers: {
@@ -79,28 +83,13 @@ class App extends Component {
 			},
 			body: JSON.stringify({
 				subject,
-				body
+				body,
+
 			})
 		});
-		this.showComposeTemplate();
+		this.setState({composing: false});
+		return this.getDataFromAPI();
 	};
-
-	//applyLabel = async (label) => {
-        //	return this.state.messages.filter(({selected}) => selected).map(m => Object.assign(m, {labels: m.labels.concat([label])}))
-        //}
-
-	//removeLabel = async (label) => {
-        //	const messages = (this.state.messages
-	//		.filter(({selected}) => selected)
-	//		.map(m => Object.assign(m, {labels: m.labels.filter(l => l !== label)})))
-	//	if (messages.length === 0) {
-	//		return
-	//	}
-
-	//	const lastMessage = messages.pop()
-	//	await Promise.all(messages.map(m => this.changePropertyForMessageIds([m.id], 'labels', m.labels)))
-	//	await this.changePropertyForMessageIds([lastMessage.id], 'labels', lastMessage.labels)
-        //}
 
 	selectedMessage = message => {
 		message.selected = !message.selected;
@@ -124,7 +113,7 @@ class App extends Component {
 		});
 		let rmessages = await messagesJson.json();
 		console.log('Came back from the patch and parsed json and got: ', rmessages);
-		this.snapshotSelectedSetState({ messages: sanitizeMessages(rmessages) });
+		this.snapshotTransientSetState({ messages: sanitizeMessages(rmessages) });
         }
 	changePropertyForSelected = async (command, state) => this.changePropertyForMessageIds(this.state.messages.filter(m => !!m.selected).map(m => m.id), command, state)
 
@@ -132,9 +121,27 @@ class App extends Component {
 	markAsUnstarred = async () => this.changePropertyForSelected('star', false)
 	toggleStarred = async (message) => this.changePropertyForMessageIds([message], 'star', !message.starred)
 	markAsRead = async () => this.changePropertyForSelected('read', true);
+	markMessageAsRead = async (msg) => this.changePropertyForMessageIds([msg.id], 'read', true);
 	markAsUnread = async () => this.changePropertyForSelected('read', false);
 	applyLabel = async (label) => this.changePropertyForSelected('addLabel', label);
 	removeLabel = async (label) => this.changePropertyForSelected('removeLabel', label);
+
+	deleteMessages = async () => this.changePropertyForSelected('delete', null)
+
+	toggleExpanded = (message) => {
+                console.log("toggle expanded", message.id)
+		const expanded = this.state.messages.filter(({expanded}) => expanded).map(({id}) => id)
+console.log(expanded);
+		let convert = (m) => {
+			let expandme = m.id === message.id;
+			return Object.assign(m, {expanded: expandme})
+		}
+		if (expanded.length > 0 && expanded[0] === message.id) {
+			console.log("convert will be always false")
+			convert = m => Object.assign(m, {expanded: false})
+		}
+		this.setState({messages: this.state.messages.map(convert)})
+	}
 
 	// if message is starred, change state of star from empty to
 	//toggleStarred = msgid => {
@@ -276,6 +283,7 @@ class App extends Component {
 					toggleSelectAllIcon={this.toggleSelectAllIcon}
 					selectAll={this.selectAll}
 					applyLabel={this.applyLabel}
+					deleteMessages={this.deleteMessages}
 					removeLabel={this.removeLabel}
 					messages={this.state.messages}
 				/>
@@ -288,6 +296,8 @@ class App extends Component {
 				<MessageList
 					starToggler={this.toggleStarred}
 					messages={this.state.messages}
+					toggleExpanded={this.toggleExpanded}
+					markAsRead={this.markMessageAsRead}
 					toggleMessageSelected={this.toggleMessageSelected}
 				/>
 			</div>

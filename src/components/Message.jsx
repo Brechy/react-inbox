@@ -20,8 +20,15 @@ const Message = props => {
 		</span>
 	));
 
-	return (
-		<div
+	const toggleExpanded = event => {
+		props.toggleExpanded(props.message);
+		props.markAsRead(props.message);
+	}
+
+	let hidden = !props.message.expanded;
+
+	return (<div>
+		<div    
 			className={`row message ${props.message.read ? 'read' : 'unread'} ${
 				props.message.selected ? 'selected' : ''
 			}`}
@@ -44,11 +51,16 @@ const Message = props => {
 					</div>
 				</div>
 			</div>
-			<div className="col-xs-11">
+			<div className="col-xs-11" onClick={toggleExpanded}>
 				{labels}
-				<a href="">{props.message.subject} </a>
+				{props.message.subject}
 			</div>
 		</div>
+		<div className={`${hidden?'hidden':''} row message ${props.message.selected ? 'selected': ''}`} >
+			<div className="col-xs-1"></div>
+			<div className="col-xs-11 message-body">{props.message.body}</div>
+		</div>
+</div>
 	);
 };
 

@@ -3,12 +3,16 @@ import React from 'react';
 
 const ComposeForm = (props) => {
 
-	const submitMessage = ({people, sendMessage}) => {
-		this.preventDefault();
-		sendMessage({
-			subject: this.target.subject.value,
-			body: this.target.body.value,
+	const submitMessage = (event) => {
+		event.preventDefault();
+		const subject = document.querySelector("#subject").value;
+		const body = document.querySelector("#body").value;
+		props.sendMessage({
+			subject,
+			body
 		});
+		document.querySelector("#subject").value = "";
+		document.querySelector("#body").value = "";
 	};
 	return (
 		<form className={`form-horizontal well ${props.composing ? '' : 'hidden'}`} onSubmit={submitMessage}>
@@ -32,8 +36,7 @@ const ComposeForm = (props) => {
 			</div>
 			<div className="form-group">
 				<div className="col-sm-8 col-sm-offset-2">
-					<input type="submit" value="Send" className="btn btn-primary">
-					</input>
+					<button className="btn btn-primary" onClick={submitMessage}>Send</button>
 				</div>
 			</div>
 		</form>

@@ -5,7 +5,9 @@ import Message from './Message';
 const MessageList = (props) => {
 	return props.messages.map(message => <Message 
 		message={message} 
+		toggleExpanded={props.toggleExpanded}
 		starToggler={props.starToggler}
+		markAsRead={props.markAsRead}
 		toggleMessageSelected={props.toggleMessageSelected}  />
 
 	);
