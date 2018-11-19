@@ -5,6 +5,10 @@ const Message = props => {
 	const toggleSelect = event => {
 		props.toggleMessageSelected(props.message);
 	};
+        console.log("In Message", props)
+        const toggleStar = event => {
+                props.starToggler(props.message.id);
+	}
 	console.log('This is the message labels >>>>>>>>>> ', props);
 	let labels = props.message.labels;
 	if (labels === undefined) {
@@ -35,9 +39,7 @@ const Message = props => {
 					<div className="col-xs-2">
 						<i
 							className={`star fa fa-star${props.message.starred ? '' : '-o'}`}
-							onClick={() => {
-								props.starToggler(props.message.id);
-							}}
+							onClick={ toggleStar}
 						/>
 					</div>
 				</div>

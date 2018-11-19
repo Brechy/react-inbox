@@ -4,6 +4,27 @@ import Toolbar from './components/Toolbar';
 import MessageList from './components/MessageList';
 import ComposeForm from './components/ComposeForm';
 
+const propForCommand = {
+	'addLabel': 'label',
+	'removeLabel': 'label',
+	'read': 'read',
+	'star': 'starred'
+}
+
+const inThatEveryoneWants = (e, l) => l.filter(x => x === e).length > 0
+
+const sanitizeMessages = (messages) => {
+	return messages.map(({id, body, labels, read, starred, subject}) => ({
+		id,
+		body: `${body}`,
+		labels: (l => { if (l === undefined) {return []} return l})(labels),
+		read: !!read,
+		starred: !!starred,
+		selected: false,
+		subject: `${subject}`
+	}))
+}
+
 class App extends Component {
 	state = { messages: [] };
 
@@ -29,8 +50,21 @@ class App extends Component {
 		const messagesJson = await fetch('http://localhost:8082/api/messages');
 		let messages = await messagesJson.json();
 		console.log('coming from API === ', messages);
-		this.setState({ messages });
+		this.snapshotSelectedSetState({ messages });
 	};
+
+	snapshotSelectedSetState = (state) => {
+		const snapshot = this.snapshotSelected();
+		console.log("previously selected", snapshot);
+		this.setState(state);
+		this.restoreSelected(snapshot);
+	}
+	snapshotSelected = () => this.state.messages.filter(({selected}) => selected).map(({id}) => id)
+	restoreSelected = (snapshot) => {
+		this.setState({
+			messages: this.state.messages.map(m => Object.assign(m, {selected: inThatEveryoneWants(m.id, snapshot)}))
+		})
+	}
 
 	//post new message to collective API
 	submitMessage = async () => {
@@ -51,56 +85,35 @@ class App extends Component {
 		this.showComposeTemplate();
 	};
 
-	toggleStarred = async message => {
-		message.starred = !message.starred;
-		this.setState(this.state.messages.concat(message));
-		let postData = {
-			command: 'star',
-			messageIds: [message.id]
-		};
-		const messagesJson = await fetch('http://localhost:8082/api/messages', {
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json',
-				Accept: 'application/json'
-			},
-			body: JSON.stringify(postData)
-		});
+	//applyLabel = async (label) => {
+        //	return this.state.messages.filter(({selected}) => selected).map(m => Object.assign(m, {labels: m.labels.concat([label])}))
+        //}
 
-		let messages = await messagesJson.json();
-		this.setState({ messages });
-	};
+	//removeLabel = async (label) => {
+        //	const messages = (this.state.messages
+	//		.filter(({selected}) => selected)
+	//		.map(m => Object.assign(m, {labels: m.labels.filter(l => l !== label)})))
+	//	if (messages.length === 0) {
+	//		return
+	//	}
+
+	//	const lastMessage = messages.pop()
+	//	await Promise.all(messages.map(m => this.changePropertyForMessageIds([m.id], 'labels', m.labels)))
+	//	await this.changePropertyForMessageIds([lastMessage.id], 'labels', lastMessage.labels)
+        //}
 
 	selectedMessage = message => {
 		message.selected = !message.selected;
 		this.setState(this.state.messages.concat(message));
 	};
 
-	markAsRead = async message => {
-		let postData = {
-			command: 'read',
-			read: true,
-			messageIds: [message.id]
-		};
-		const messagesJson = await fetch('http://localhost:8082/api/messages', {
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json',
-				Accept: 'application/json'
-			},
-			body: JSON.stringify(postData)
-		});
-		let messages = await messagesJson.json();
-		console.log('Came back from the patch and parsed json and got: ', messages);
-		this.setState({ messages });
-	};
 
-	markAsUnread = async message => {
+        changePropertyForMessageIds = async (messages, command, state) => {
 		let postData = {
-			command: 'read',
-			read: false,
-			messageIds: [message.id]
+			command: command,
+			messageIds: messages
 		};
+		postData[propForCommand[command]] = state;
 		const messagesJson = await fetch('http://localhost:8082/api/messages', {
 			method: 'PATCH',
 			headers: {
@@ -109,39 +122,48 @@ class App extends Component {
 			},
 			body: JSON.stringify(postData)
 		});
-		let messages = await messagesJson.json();
-		console.log('Came back from the patch and parsed json and got: ', messages);
-		this.setState({ messages });
-	};
+		let rmessages = await messagesJson.json();
+		console.log('Came back from the patch and parsed json and got: ', rmessages);
+		this.snapshotSelectedSetState({ messages: sanitizeMessages(rmessages) });
+        }
+	changePropertyForSelected = async (command, state) => this.changePropertyForMessageIds(this.state.messages.filter(m => !!m.selected).map(m => m.id), command, state)
+
+	markAsStarred = async () => this.changePropertyForSelected('star', true)
+	markAsUnstarred = async () => this.changePropertyForSelected('star', false)
+	toggleStarred = async (message) => this.changePropertyForMessageIds([message], 'star', !message.starred)
+	markAsRead = async () => this.changePropertyForSelected('read', true);
+	markAsUnread = async () => this.changePropertyForSelected('read', false);
+	applyLabel = async (label) => this.changePropertyForSelected('addLabel', label);
+	removeLabel = async (label) => this.changePropertyForSelected('removeLabel', label);
 
 	// if message is starred, change state of star from empty to
-	toggleStarred = msgid => {
-		let newMessages = [];
-		for (let i = 0; i < this.state.messages.length; i++) {
-			let msg = this.state.messages[i];
-			if (msg.id === msgid) {
-				msg.starred = !msg.starred;
-			}
-			newMessages.push(msg);
-		}
-		this.setState({ messages: newMessages });
-	};
+	//toggleStarred = msgid => {
+	//	let newMessages = [];
+	//	for (let i = 0; i < this.state.messages.length; i++) {
+	//		let msg = this.state.messages[i];
+	//		if (msg.id === msgid) {
+	//			msg.starred = !msg.starred;
+	//		}
+	//		newMessages.push(msg);
+	//	}
+	//	this.setState({ messages: newMessages });
+	//};
 
-	updateStarred = async message => {
-		const messagesJSON = await fetch('http://localhost:8082/api/messages', {
-			method: 'PATCH',
-			body: JSON.stringify({
-				messageIds: [message.id],
-				command: 'star',
-				star: message.starred
-			}),
-			headers: {
-				'Content-Type': 'application/json',
-				Accept: 'application/json'
-			}
-		});
-		this.toggleProperty(message, 'starred');
-	};
+	//updateStarred = async message => {
+	//	const messagesJSON = await fetch('http://localhost:8082/api/messages', {
+	//		method: 'PATCH',
+	//		body: JSON.stringify({
+	//			messageIds: [message.id],
+	//			command: 'star',
+	//			star: message.starred
+	//		}),
+	//		headers: {
+	//			'Content-Type': 'application/json',
+	//			Accept: 'application/json'
+	//		}
+	//	});
+	//	this.toggleProperty(message, 'starred');
+	//};
 
 	toggleCompose = () => {
 		this.setState({ composing: !this.state.composing });
@@ -235,33 +257,26 @@ class App extends Component {
 			return message.selected;
 		}).length;
 
+		let setSelected = true;
 		if (messagesSelected === this.state.messages.length) {
-			this.setState({
-				message: this.state.messages.map(message => {
-					message.selected = false;
-					return message;
-				})
-			});
-		} else {
-			this.setState({
-				message: this.state.messages.map(message => {
-					message.selected = true;
-					return message;
-				})
-			});
+			setSelected = false;
 		}
+
+		this.setState({messages: this.state.messages.map(m => Object.assign(m, {selected: setSelected}))})
 	};
 
 	render() {
 		return (
 			<div className="App">
 				<Toolbar
-					starred={this.state.toggleStarred}
+					starred={this.toggleStarred}
 					toggleCompose={this.toggleCompose}
 					markAsRead={this.markAsRead}
 					markAsUnread={this.markAsUnread}
 					toggleSelectAllIcon={this.toggleSelectAllIcon}
 					selectAll={this.selectAll}
+					applyLabel={this.applyLabel}
+					removeLabel={this.removeLabel}
 					messages={this.state.messages}
 				/>
 
@@ -271,7 +286,7 @@ class App extends Component {
 				/>
 
 				<MessageList
-					starToggler={this.updateStarred}
+					starToggler={this.toggleStarred}
 					messages={this.state.messages}
 					toggleMessageSelected={this.toggleMessageSelected}
 				/>

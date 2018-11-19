@@ -2,6 +2,7 @@
 import React from 'react';
 
 const Toolbar = props => {
+        console.log("Toolbar", props)
 	let unreadMessageCount = props.messages.filter(message => !message.read)
 		.length;
 	let selectedMessageCount = props.messages.filter(message => message.selected)
@@ -34,15 +35,15 @@ const Toolbar = props => {
 					Mark As Unread
 				</button>
 
-				<select className="form-control label-select">
-					<option>Apply label</option>
+				<select onChange={(e) => {props.applyLabel(e.target.value);e.target.value=""}} className="form-control label-select">
+					<option value="">Apply label</option>
 					<option value="dev">dev</option>
 					<option value="personal">personal</option>
 					<option value="gschool">gschool</option>
 				</select>
 
-				<select className="form-control label-select">
-					<option>Remove label</option>
+				<select onChange={(e) => {props.removeLabel(e.target.value);e.target.value=""}} className="form-control label-select">
+					<option value="">Remove label</option>
 					<option value="dev">dev</option>
 					<option value="personal">personal</option>
 					<option value="gschool">gschool</option>
